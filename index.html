@@ -1,10 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <title>Benim Sitem</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⭕ XOX Oyunu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #status {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 20px;
+            height: 30px;
+        }
+        
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .cell {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 15px;
+            font-size: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+        }
+        
+        .cell:hover:not(.taken) {
+            background: #fff;
+            transform: scale(1.05);
+        }
+        
+        .cell.taken {
+            cursor: not-allowed;
+        }
+        
+        .cell.x {
+            color: #ff6b6b;
+        }
+        
+        .cell.o {
+            color: #4ecdc4;
+        }
+        
+        #restartBtn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #1e3c72;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        
+        #restartBtn:hover {
+            transform: scale(1.1);
+        }
+        
+        .winning {
+            animation: pulse 0.5s infinite;
+            background: #ffd93d !important;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
 </head>
 <body>
-  <h1>Merhaba Dünya!</h1>
-  <p>Sitem yayında 🚀</p>
+    <h1>⭕ XOX Oyunu ❌</h1>
+    <div id="status">Sıra: X</div>
+    <div id="board">
+        <button class="cell" onclick="makeMove(0)"></button>
+        <button class="cell" onclick="makeMove(1)"></button>
+        <button class="cell" onclick="makeMove(2)"></button>
+        <button class="cell" onclick="makeMove(3)"></button>
+        <button class="cell" onclick="makeMove(4)"></button>
+        <button class="cell" onclick="makeMove(5)"></button>
+        <button class="cell" onclick="makeMove(6)"></button>
+        <button class="cell" onclick="makeMove(7)"></button>
+        <button class="cell" onclick="makeMove(8)"></button>
+    </div>
+    <button id="restartBtn" onclick="restartGame()">Yeniden Başla</button>
+
+    <script>
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+        
+        function makeMove(index) {
+            if (gameBoard[index] !== '' || !gameActive) return;
+            
+            gameBoard[index] = currentPlayer;
+            const cell = document.getElementsByClassName('cell')[index];
+            cell.textContent = currentPlayer;
+            cell.classList.add('taken', currentPlayer.toLowerCase());
+            
+            if (checkWin()) {
+                document.getElementById('status').textContent = `🎉 ${currentPlayer} Kazandı!`;
+                gameActive = false;
+                return;
+            }
+            
+            if (checkDraw()) {
+                document.getElementById('status').textContent = '🤝 Berabere!';
+                gameActive = false;
+                return;
+            }
+            
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('status').textContent = `Sıra: ${currentPlayer}`;
+        }
+        
+        function checkWin() {
+            for (let condition of winningConditions) {
+                const [a, b, c] = condition;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    highlightWin(condition);
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function highlightWin(cells) {
+            const cellElements = document.getElementsByClassName('cell');
+            for (let index of cells) {
+                cellElements[index].classList.add('winning');
+            }
+        }
+        
+        function checkDraw() {
+            return gameBoard.every(cell => cell !== '');
+        }
+        
+        function restartGame() {
+            currentPlayer = 'X';
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            document.getElementById('status').textContent = 'Sıra: X';
+            
+            const cells = document.getElementsByClassName('cell');
+            for (let cell of cells) {
+                cell.textContent = '';
+                cell.className = 'cell';
+            }
+        }
+    </script>
 </body>
 </html>
