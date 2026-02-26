@@ -2,191 +2,1457 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⭕ XOX Oyunu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💎 Kelime Macerası ULTRA</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
         
         body {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            position: relative;
         }
         
-        h1 {
-            color: #fff;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        /* Animated Background */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
         }
         
-        #status {
-            color: #fff;
-            font-size: 24px;
-            margin-bottom: 20px;
-            height: 30px;
+        .bg-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: float 10s infinite linear;
         }
         
-        #board {
-            display: grid;
-            grid-template-columns: repeat(3, 120px);
-            gap: 10px;
-            background: rgba(255,255,255,0.1);
+        @keyframes float {
+            from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            to { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Start Screen */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 1000;
             padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow-y: auto;
         }
         
-        .cell {
-            width: 120px;
-            height: 120px;
-            background: rgba(255,255,255,0.9);
+        .game-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.8em;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b, #c44569, #ffd700);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            margin-top: 20px;
+            margin-bottom: 5px;
+            text-align: center;
+            animation: gradient-shift 3s linear infinite, bounce 2s infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .game-subtitle {
+            color: #a0a0a0;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        .difficulty-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 20px;
+        }
+        
+        .diff-btn {
+            padding: 18px 25px;
             border: none;
-            border-radius: 15px;
-            font-size: 60px;
-            font-weight: bold;
+            border-radius: 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2em;
             cursor: pointer;
             transition: all 0.3s;
-            color: #333;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid transparent;
         }
         
-        .cell:hover:not(.taken) {
-            background: #fff;
+        .diff-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .diff-btn:hover::before {
+            left: 100%;
+        }
+        
+        /* Difficulty Colors */
+        .diff-btn.easy {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+        }
+        
+        .diff-btn.medium {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+            color: white;
+        }
+        
+        .diff-btn.hard {
+            background: linear-gradient(135deg, #d63031, #e84393);
+            color: white;
+        }
+        
+        .diff-btn.impossible {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            animation: pulse-purple 2s infinite;
+        }
+        
+        .diff-btn.ultra {
+            background: linear-gradient(135deg, #2d3436, #636e72, #b2bec3, #2d3436);
+            background-size: 300% 300%;
+            color: white;
+            animation: gradient-move 3s ease infinite, shake 0.5s infinite;
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255,215,0,0.5);
+        }
+        
+        .diff-btn.mega {
+            background: linear-gradient(135deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400% 400%;
+            color: white;
+            animation: rainbow 2s linear infinite, glitch 1s infinite;
+            border: 3px solid #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             transform: scale(1.05);
         }
         
-        .cell.taken {
-            cursor: not-allowed;
+        @keyframes gradient-move {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
         
-        .cell.x {
+        @keyframes pulse-purple {
+            0%, 100% { box-shadow: 0 8px 25px rgba(108,92,231,0.4); }
+            50% { box-shadow: 0 8px 40px rgba(108,92,231,0.8), 0 0 60px rgba(108,92,231,0.4); }
+        }
+        
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        
+        @keyframes glitch {
+            0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            20% { clip-path: inset(20% 0 30% 0); transform: translate(-2px, 2px); }
+            40% { clip-path: inset(50% 0 20% 0); transform: translate(2px, -2px); }
+            60% { clip-path: inset(10% 0 60% 0); transform: translate(-2px, -2px); }
+            80% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 2px); }
+        }
+        
+        .diff-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+        }
+        
+        .diff-btn.mega:hover {
+            transform: translateY(-3px) scale(1.08);
+        }
+        
+        .diff-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            z-index: 1;
+        }
+        
+        .diff-name {
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .diff-label {
+            font-size: 0.75em;
+            opacity: 0.9;
+            margin-top: 3px;
+            font-weight: 400;
+        }
+        
+        .diff-icon {
+            font-size: 2em;
+            z-index: 1;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .warning-text {
             color: #ff6b6b;
+            font-size: 0.9em;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            animation: blink 1s infinite;
         }
         
-        .cell.o {
-            color: #4ecdc4;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
-        #restartBtn {
-            margin-top: 30px;
-            padding: 15px 40px;
-            font-size: 20px;
-            background: #fff;
+        /* Game Screen */
+        .game-screen {
+            width: 100%;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .game-screen.active {
+            display: flex;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .level-info {
+            color: white;
+            font-weight: bold;
+            font-size: 1em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .difficulty-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .diamond-counter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,140,0,0.2));
+            padding: 8px 18px;
+            border-radius: 25px;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: 2px solid rgba(255,215,0,0.3);
+            animation: diamond-glow 2s infinite;
+        }
+        
+        @keyframes diamond-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            50% { box-shadow: 0 0 25px rgba(255,215,0,0.6), 0 0 40px rgba(255,215,0,0.3); }
+        }
+        
+        .diamond-icon {
+            font-size: 1.3em;
+            animation: rotate 3s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Question Area */
+        .question-container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+        
+        .question-container.ultra-mode {
+            animation: border-glow 2s infinite;
+        }
+        
+        .question-container.mega-mode {
+            animation: rainbow-border 1s infinite;
+        }
+        
+        @keyframes border-glow {
+            0%, 100% { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            50% { border-color: #ff6b6b; box-shadow: 0 0 40px rgba(255,107,107,0.8); }
+        }
+        
+        @keyframes rainbow-border {
+            0% { border-color: #ff0000; }
+            16% { border-color: #ff7300; }
+            33% { border-color: #fffb00; }
+            50% { border-color: #48ff00; }
+            66% { border-color: #00ffd5; }
+            83% { border-color: #7a00ff; }
+            100% { border-color: #ff0000; }
+        }
+        
+        .category-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 25px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .question-text {
+            font-size: 1.3em;
+            color: #2d3436;
+            text-align: center;
+            line-height: 1.4;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+        
+        /* Timer Bar */
+        .timer-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 15px;
+        }
+        
+        .timer-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #ffd700, #e17055, #d63031);
+            border-radius: 10px;
+            transition: width 1s linear;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .timer-text {
+            text-align: center;
+            color: white;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        
+        /* Answer Preview */
+        .answer-preview {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        .preview-letter {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.4em;
+            color: #2d3436;
+            transition: all 0.3s;
+            animation: popIn 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 2px solid transparent;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-180deg); }
+            70% { transform: scale(1.1) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        
+        .preview-letter.correct {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            animation: correct-pulse 0.5s;
+            border-color: #ffd700;
+        }
+        
+        @keyframes correct-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2) rotate(5deg); }
+        }
+        
+        .preview-letter.wrong {
+            background: #d63031;
+            color: white;
+            animation: shake 0.5s;
+        }
+        
+        /* Game Board */
+        .game-board {
+            width: 100%;
+            max-width: 380px;
+            aspect-ratio: 1;
+            position: relative;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 60px rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .game-board.ultra {
+            animation: board-pulse 2s infinite;
+        }
+        
+        .game-board.mega {
+            animation: board-rainbow 1s infinite;
+        }
+        
+        @keyframes board-pulse {
+            0%, 100% { box-shadow: 0 10px 40px rgba(255,0,0,0.3), inset 0 0 60px rgba(255,0,0,0.1); }
+            50% { box-shadow: 0 10px 60px rgba(255,0,0,0.6), inset 0 0 80px rgba(255,0,0,0.2); }
+        }
+        
+        @keyframes board-rainbow {
+            0%, 100% { border-color: #ff0000; box-shadow: 0 0 60px rgba(255,0,0,0.5); }
+            25% { border-color: #00ff00; box-shadow: 0 0 60px rgba(0,255,0,0.5); }
+            50% { border-color: #0000ff; box-shadow: 0 0 60px rgba(0,0,255,0.5); }
+            75% { border-color: #ff00ff; box-shadow: 0 0 60px rgba(255,0,255,0.5); }
+        }
+        
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            box-shadow: 0 5px 25px rgba(255,215,0,0.4);
+            z-index: 10;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid #fff;
+        }
+        
+        .center-circle:active {
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+        
+        .center-circle.ultra {
+            animation: center-spin 2s linear infinite;
+        }
+        
+        .center-circle.mega {
+            animation: center-glitch 0.5s infinite;
+        }
+        
+        @keyframes center-spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        @keyframes center-glitch {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); filter: hue-rotate(0deg); }
+            25% { transform: translate(-48%, -52%) scale(1.1); filter: hue-rotate(90deg); }
+            50% { transform: translate(-52%, -48%) scale(0.9); filter: hue-rotate(180deg); }
+            75% { transform: translate(-50%, -50%) scale(1.05); filter: hue-rotate(270deg); }
+        }
+        
+        .letter-slot {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.4em;
+            color: #2d3436;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 5;
+            border: 3px solid transparent;
+        }
+        
+        .letter-slot:hover {
+            transform: scale(1.15);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            z-index: 20;
+        }
+        
+        .letter-slot.selected {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            transform: scale(1.2);
+            box-shadow: 0 0 30px rgba(108,92,231,0.8);
+            border-color: #ffd700;
+            z-index: 15;
+        }
+        
+        .letter-slot.used {
+            background: #636e72;
+            color: #b2bec3;
+            transform: scale(0.85);
+            opacity: 0.5;
+        }
+        
+        .letter-slot.mega-letter {
+            animation: letter-rainbow 1s infinite;
+        }
+        
+        @keyframes letter-rainbow {
+            0% { background: #ff6b6b; }
+            20% { background: #feca57; }
+            40% { background: #48dbfb; }
+            60% { background: #ff9ff3; }
+            80% { background: #54a0ff; }
+            100% { background: #ff6b6b; }
+        }
+        
+        /* Connection Lines */
+        .connection-line {
+            position: absolute;
+            height: 4px;
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+            transform-origin: left center;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(108,92,231,0.6);
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .control-btn {
+            padding: 12px 25px;
             border: none;
             border-radius: 50px;
-            cursor: pointer;
-            color: #1e3c72;
+            font-family: 'Nunito', sans-serif;
             font-weight: bold;
-            transition: transform 0.3s;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: white;
+            position: relative;
+            overflow: hidden;
         }
         
-        #restartBtn:hover {
-            transform: scale(1.1);
+        .btn-clear {
+            background: linear-gradient(135deg, #d63031, #e84393);
         }
         
-        .winning {
-            animation: pulse 0.5s infinite;
-            background: #ffd93d !important;
+        .btn-shuffle {
+            background: linear-gradient(135deg, #0984e3, #74b9ff);
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        .btn-hint {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            font-size: 1.1em;
+            padding: 15px 35px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Win Modal */
+        .win-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+        
+        .win-modal.active {
+            display: flex;
+        }
+        
+        .win-content {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 100px rgba(108,92,231,0.3);
+            animation: win-pop 0.6s;
+            border: 3px solid #ffd700;
+            max-width: 90%;
+        }
+        
+        @keyframes win-pop {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        
+        .win-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 100%;
+            animation: gradient-shift 2s infinite;
+        }
+        
+        .diamond-reward {
+            font-size: 5em;
+            margin: 20px 0;
+            animation: diamond-spin 2s infinite;
+            filter: drop-shadow(0 0 30px rgba(255,215,0,0.8));
+        }
+        
+        @keyframes diamond-spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.3); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        
+        .reward-text {
+            font-size: 1.8em;
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+        
+        .bonus-text {
+            color: #a0a0a0;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+        
+        /* Lose Modal */
+        .lose-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+        
+        .lose-modal.active {
+            display: flex;
+        }
+        
+        .lose-content {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            color: white;
+            border: 3px solid #d63031;
+        }
+        
+        .lose-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2em;
+            color: #d63031;
+            margin-bottom: 20px;
+        }
+        
+        /* Mega Effects */
+        .glitch-text {
+            position: relative;
+            animation: text-glitch 1s infinite;
+        }
+        
+        @keyframes text-glitch {
+            0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #00ff00; }
+            25% { text-shadow: -2px 0 #ff0000, 2px 0 #0000ff; }
+            50% { text-shadow: 2px 0 #00ff00, -2px 0 #ff0000; }
+            75% { text-shadow: -2px 0 #0000ff, 2px 0 #00ff00; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .game-title { font-size: 2.2em; }
+            .question-text { font-size: 1.1em; }
+            .letter-slot { width: 48px; height: 48px; font-size: 1.2em; }
+            .center-circle { width: 65px; height: 65px; font-size: 1.8em; }
+            .game-board { max-width: 340px; }
+            .preview-letter { width: 40px; height: 40px; font-size: 1.2em; }
+            .diff-btn { padding: 15px 20px; font-size: 1.1em; }
+        }
+        
+        /* Particle Effects */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        @keyframes particle-explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+        
+        /* Screen Shake for Mega */
+        .screen-shake {
+            animation: shake-screen 0.5s;
+        }
+        
+        @keyframes shake-screen {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, -10px); }
+            20% { transform: translate(10px, 10px); }
+            30% { transform: translate(-10px, 10px); }
+            40% { transform: translate(10px, -10px); }
+            50% { transform: translate(-5px, 5px); }
+            60% { transform: translate(5px, -5px); }
+            70% { transform: translate(-5px, -5px); }
+            80% { transform: translate(5px, 5px); }
+            90% { transform: translate(-2px, 2px); }
         }
     </style>
 </head>
 <body>
-    <h1>⭕ XOX Oyunu ❌</h1>
-    <div id="status">Sıra: X</div>
-    <div id="board">
-        <button class="cell" onclick="makeMove(0)"></button>
-        <button class="cell" onclick="makeMove(1)"></button>
-        <button class="cell" onclick="makeMove(2)"></button>
-        <button class="cell" onclick="makeMove(3)"></button>
-        <button class="cell" onclick="makeMove(4)"></button>
-        <button class="cell" onclick="makeMove(5)"></button>
-        <button class="cell" onclick="makeMove(6)"></button>
-        <button class="cell" onclick="makeMove(7)"></button>
-        <button class="cell" onclick="makeMove(8)"></button>
+    <!-- Background Particles -->
+    <div class="bg-particles" id="bgParticles"></div>
+    
+    <!-- Start Screen -->
+    <div class="start-screen" id="startScreen">
+        <div class="game-title">💎 KELİME MACERASI</div>
+        <div class="game-subtitle">Ultra Edition</div>
+        
+        <div class="difficulty-grid">
+            <button class="diff-btn easy" onclick="selectDifficulty('easy')">
+                <span class="diff-info">
+                    <span class="diff-name">🌱 KOLAY</span>
+                    <span class="diff-label">5-6 Harf • 10 💎 • 60 sn</span>
+                </span>
+                <span class="diff-icon">😊</span>
+            </button>
+            
+            <button class="diff-btn medium" onclick="selectDifficulty('medium')">
+                <span class="diff-info">
+                    <span class="diff-name">⚡ ORTA</span>
+                    <span class="diff-label">6-8 Harf • 25 💎 • 45 sn</span>
+                </span>
+                <span class="diff-icon">😎</span>
+            </button>
+            
+            <button class="diff-btn hard" onclick="selectDifficulty('hard')">
+                <span class="diff-info">
+                    <span class="diff-name">🔥 ZOR</span>
+                    <span class="diff-label">8-10 Harf • 50 💎 • 30 sn</span>
+                </span>
+                <span class="diff-icon">🤯</span>
+            </button>
+            
+            <button class="diff-btn impossible" onclick="selectDifficulty('impossible')">
+                <span class="diff-info">
+                    <span class="diff-name">👿 İMKANSIZ</span>
+                    <span class="diff-label">10-12 Harf • 100 💎 • 20 sn</span>
+                </span>
+                <span class="diff-icon">💀</span>
+            </button>
+            
+            <button class="diff-btn ultra" onclick="selectDifficulty('ultra')">
+                <span class="diff-info">
+                    <span class="diff-name">⚡ ULTRA İMKANSIZ</span>
+                    <span class="diff-label">12-15 Harf • 250 💎 • 15 sn • HAREKETLİ HARFLER!</span>
+                </span>
+                <span class="diff-icon">🤖</span>
+            </button>
+            
+            <button class="diff-btn mega" onclick="selectDifficulty('mega')">
+                <span class="diff-info">
+                    <span class="diff-name glitch-text">👹 MEGA İMKANSIZ</span>
+                    <span class="diff-label">15+ Harf • 500 💎 • 10 sn • GLITCH MODE!</span>
+                </span>
+                <span class="diff-icon">🔥</span>
+            </button>
+        </div>
+        
+        <div class="warning-text" id="warningText"></div>
     </div>
-    <button id="restartBtn" onclick="restartGame()">Yeniden Başla</button>
+    
+    <!-- Game Screen -->
+    <div class="game-screen" id="gameScreen">
+        <div class="top-bar">
+            <div class="level-info" id="levelInfo">Seviye 1</div>
+            <div class="difficulty-badge" id="difficultyBadge">KOLAY</div>
+            <div class="diamond-counter">
+                <span class="diamond-icon">💎</span>
+                <span id="diamondCount">0</span>
+            </div>
+        </div>
+        
+        <div class="timer-container">
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerFill" style="width: 100%"></div>
+            </div>
+            <div class="timer-text" id="timerText">60 saniye</div>
+        </div>
+        
+        <div class="question-container" id="questionContainer">
+            <div class="category-badge" id="categoryBadge">DOĞA</div>
+            <div class="question-text" id="questionText">Yükleniyor...</div>
+        </div>
+        
+        <div class="answer-preview" id="answerPreview"></div>
+        
+        <div class="game-board" id="gameBoard">
+            <div class="center-circle" id="centerCircle">🎯</div>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn btn-clear" onclick="clearAnswer()">🗑️</button>
+            <button class="control-btn btn-shuffle" onclick="shuffleLetters()" id="shuffleBtn">🔄</button>
+            <button class="control-btn btn-hint" onclick="showHint()">💡 -5💎</button>
+            <button class="control-btn btn-submit" onclick="checkAnswer()">✅</button>
+        </div>
+    </div>
+    
+    <!-- Win Modal -->
+    <div class="win-modal" id="winModal">
+        <div class="win-content">
+            <div class="win-title">🎉 DOĞRU CEVAP!</div>
+            <div class="diamond-reward">💎</div>
+            <div class="reward-text" id="rewardText">+10 Elmas!</div>
+            <div class="bonus-text" id="bonusText"></div>
+            <button class="control-btn btn-submit" onclick="nextLevel()" style="font-size: 1.2em; padding: 15px 40px;">
+                SONRAKİ SEVİYE ➡️
+            </button>
+        </div>
+    </div>
+    
+    <!-- Lose Modal -->
+    <div class="lose-modal" id="loseModal">
+        <div class="lose-content">
+            <div class="lose-title">⏰ SÜRE DOLDU!</div>
+            <div style="font-size: 3em; margin: 20px 0;">😵</div>
+            <div style="margin-bottom: 20px;">Cevap: <strong id="correctAnswer" style="color: #ffd700;"></strong></div>
+            <button class="control-btn btn-submit" onclick="retryLevel()" style="font-size: 1.1em; padding: 12px 30px;">
+                🔄 TEKRAR DENE
+            </button>
+        </div>
+    </div>
 
     <script>
-        let currentPlayer = 'X';
-        let gameBoard = ['', '', '', '', '', '', '', '', ''];
-        let gameActive = true;
+        // Game Data - 5 Difficulty Levels
+        const gameData = {
+            easy: [
+                { category: 'Doğa', question: 'Gökyüzünün rengi nedir?', answer: 'MAVİ', letters: ['M', 'A', 'V', 'İ', 'L', 'E'] },
+                { category: 'Hayvan', question: 'En sadık dostumuz?', answer: 'KÖPEK', letters: ['K', 'Ö', 'P', 'E', 'K', 'A'] },
+                { category: 'Yiyecek', question: 'Kahvaltıda sürülen tatlı?', answer: 'REÇEL', letters: ['R', 'E', 'Ç', 'E', 'L', 'İ'] },
+                { category: 'Şehir', question: 'Türkiye\'nin başkenti?', answer: 'ANKARA', letters: ['A', 'N', 'K', 'A', 'R', 'A'] },
+                { category: 'Vücut', question: 'Görmeye yarayan organ?', answer: 'GÖZ', letters: ['G', 'Ö', 'Z', 'Ü', 'K', 'L'] }
+            ],
+            medium: [
+                { category: 'Doğa', question: 'Yağmurdan sonra beliren renkli yay?', answer: 'GÖKKUŞAĞI', letters: ['G', 'Ö', 'K', 'K', 'U', 'Ş', 'A', 'Ğ', 'I', 'L'] },
+                { category: 'Hayvan', question: 'Sabahları öten küçük kuş?', answer: 'SERÇE', letters: ['S', 'E', 'R', 'Ç', 'E', 'V', 'A', 'K'] },
+                { category: 'Yiyecek', question: 'Simitin içindeki peynirli börek?', answer: 'AÇMA', letters: ['A', 'Ç', 'M', 'A', 'E', 'K', 'S', 'İ'] },
+                { category: 'Zaman', question: 'Gün batımından önceki vakit?', answer: 'AKŞAM', letters: ['A', 'K', 'Ş', 'A', 'M', 'U', 'S', 'T'] },
+                { category: 'Şehir', question: 'İki kıtayı birleştiren şehir?', answer: 'İSTANBUL', letters: ['İ', 'S', 'T', 'A', 'N', 'B', 'U', 'L', 'K', 'Z'] }
+            ],
+            hard: [
+                { category: 'Doğa', question: 'Gece gökyüzünde parlayan gaz topu?', answer: 'YILDIZ', letters: ['Y', 'I', 'L', 'D', 'I', 'Z', 'A', 'K', 'Ü', 'S'] },
+                { category: 'Hayvan', question: 'Ormanın kralı, yelesi olan?', answer: 'ASLAN', letters: ['A', 'S', 'L', 'A', 'N', 'K', 'P', 'E', 'R', 'İ'] },
+                { category: 'Yiyecek', question: 'Fıstıklı ve şerbetli tatlı?', answer: 'BAKLAVA', letters: ['B', 'A', 'K', 'L', 'A', 'V', 'A', 'S', 'Ü', 'T'] },
+                { category: 'Vücut', question: 'Kan pompalayan kaslı organ?', answer: 'KALP', letters: ['K', 'A', 'L', 'P', 'Ü', 'R', 'E', 'S', 'İ', 'Z'] },
+                { category: 'Zaman', question: 'Yılın en soğuk mevsimi?', answer: 'KIŞ', letters: ['K', 'I', 'Ş', 'A', 'L', 'B', 'Ü', 'Z', 'G', 'E'] }
+            ],
+            impossible: [
+                { category: 'Bilim', question: 'Einstein\'ın ünlü formülü E=mc²\'deki c nedir?', answer: 'IŞIKHIZI', letters: ['I', 'Ş', 'I', 'K', 'H', 'I', 'Z', 'I', 'A', 'B'] },
+                { category: 'Coğrafya', question: 'Dünya\'nın en derin noktası?', answer: 'MARİANAÇUKURU', letters: ['M', 'A', 'R', 'İ', 'A', 'N', 'A', 'Ç', 'U', 'K', 'U', 'R', 'U', 'D', 'E', 'N'] },
+                { category: 'Tarih', question: 'Osmanlı\'nın ilk başkenti?', answer: 'BURSA', letters: ['B', 'U', 'R', 'S', 'A', 'İ', 'Z', 'N', 'İ', 'K'] },
+                { category: 'Uzay', question: 'Güneş Sistemi\'ndeki en büyük gezegen?', answer: 'JÜPİTER', letters: ['J', 'Ü', 'P', 'İ', 'T', 'E', 'R', 'S', 'A', 'T'] },
+                { category: 'Kimya', question: 'Su\'nun kimyasal formülü?', answer: 'H2O', letters: ['H', '2', 'O', 'S', 'U', 'A', 'B', 'C', 'D', 'E'] }
+            ],
+            ultra: [
+                { category: 'Fizik', question: 'Evrenin başlangıç patlaması?', answer: 'BÜYÜKPATLAMA', letters: ['B', 'Ü', 'Y', 'Ü', 'K', 'P', 'A', 'T', 'L', 'A', 'M', 'A', 'S', 'I', 'N', 'G'] },
+                { category: 'Edebiyat', question: 'Dante\'nin ünlü eseri, Cehennem?', answer: 'İLAHİKOMEDYA', letters: ['İ', 'L', 'A', 'H', 'İ', 'K', 'O', 'M', 'E', 'D', 'Y', 'A', 'S', 'U', 'Z', 'T'] },
+                { category: 'Biyoloji', question: 'İnsan DNA\'sının şekli?', answer: 'ÇİFTSARMALLI', letters: ['Ç', 'İ', 'F', 'T', 'S', 'A', 'R', 'M', 'A', 'L', 'L', 'I', 'H', 'E', 'L', 'İ'] },
+                { category: 'Astronomi', question: 'Yıldızların son evresi?', answer: 'KARADELİK', letters: ['K', 'A', 'R', 'A', 'D', 'E', 'L', 'İ', 'K', 'B', 'O', 'Ş', 'L', 'U', 'K', 'S'] },
+                { category: 'Matematik', question: 'Pi sayısının ilk üç harfi?', answer: 'ÜÇ', letters: ['Ü', 'Ç', 'N', 'O', 'K', 'T', 'A', 'O', 'N', 'D', 'Ö', 'R', 'T', 'B', 'E', 'Ş'] }
+            ],
+            mega: [
+                { category: 'Kuantum', question: 'Schrödinger\'in ünlü deneyindeki hayvan?', answer: 'KEDİ', letters: ['K', 'E', 'D', 'İ', 'A', 'M', 'Y', 'A', 'Ö', 'L', 'Ü', 'Ş', 'Ç', 'I', 'K', 'A', 'G', 'L', 'İ', 'B'] },
+                { category: 'Felsefe', question: 'Descartes\'ın düşünce özü?', answer: 'DÜŞÜNÜYORUMÖYLEYSEVARIM', letters: ['D', 'Ü', 'Ş', 'Ü', 'N', 'Ü', 'Y', 'O', 'R', 'U', 'M', 'Ö', 'Y', 'L', 'E', 'Y', 'S', 'E', 'V', 'A', 'R', 'I', 'M', 'A', 'B', 'C'] },
+                { category: 'Mitology', question: 'Yunan mitolojisinde bilgelik tanrıçası?', answer: 'ATHENA', letters: ['A', 'T', 'H', 'E', 'N', 'A', 'Z', 'E', 'U', 'S', 'P', 'O', 'S', 'E', 'İ', 'D', 'O', 'N', 'H', 'A', 'D', 'E', 'S', 'A', 'B', 'C'] },
+                { category: 'Jeoloji', question: 'Yer kabuğunun altındaki erimiş katman?', answer: 'MAKYAN', letters: ['M', 'A', 'N', 'T', 'İ', 'Y', 'A', 'K', 'R', 'U', 'S', 'T', 'O', 'Ç', 'E', 'K', 'İ', 'R', 'E', 'Ç', 'A', 'L', 'T', 'A', 'B', 'C'] },
+                { category: 'Biyokimya', question: 'Protein yapıtaşları?', answer: 'AMİNOASİT', letters: ['A', 'M', 'İ', 'N', 'O', 'A', 'S', 'İ', 'T', 'P', 'E', 'P', 'T', 'İ', 'D', 'B', 'A', 'Ğ', 'L', 'A', 'Ç', 'I', 'K', 'R', 'İ', 'B'] }
+            ]
+        };
         
-        const winningConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8],
-            [0, 3, 6], [1, 4, 7], [2, 5, 8],
-            [0, 4, 8], [2, 4, 6]
-        ];
+        const difficultySettings = {
+            easy: { reward: 10, time: 60, shuffle: false, move: false, glitch: false },
+            medium: { reward: 25, time: 45, shuffle: false, move: false, glitch: false },
+            hard: { reward: 50, time: 30, shuffle: false, move: false, glitch: false },
+            impossible: { reward: 100, time: 20, shuffle: true, move: false, glitch: false },
+            ultra: { reward: 250, time: 15, shuffle: true, move: true, glitch: false },
+            mega: { reward: 500, time: 10, shuffle: true, move: true, glitch: true }
+        };
         
-        function makeMove(index) {
-            if (gameBoard[index] !== '' || !gameActive) return;
-            
-            gameBoard[index] = currentPlayer;
-            const cell = document.getElementsByClassName('cell')[index];
-            cell.textContent = currentPlayer;
-            cell.classList.add('taken', currentPlayer.toLowerCase());
-            
-            if (checkWin()) {
-                document.getElementById('status').textContent = `🎉 ${currentPlayer} Kazandı!`;
-                gameActive = false;
-                return;
+        const categoryColors = {
+            'Doğa': '#00b894', 'Hayvan': '#e84393', 'Yiyecek': '#fdcb6e', 'Şehir': '#0984e3',
+            'Vücut': '#a29bfe', 'Zaman': '#e17055', 'Bilim': '#6c5ce7', 'Coğrafya': '#00cec9',
+            'Tarih': '#d63031', 'Uzay': '#2d3436', 'Kimya': '#00b894', 'Fizik': '#ff7675',
+            'Edebiyat': '#74b9ff', 'Biyoloji': '#55efc4', 'Astronomi': '#a29bfe', 'Matematik': '#ffeaa7',
+            'Kuantum': '#fd79a8', 'Felsefe': '#fab1a0', 'Mitology': '#81ecec', 'Jeoloji': '#636e72',
+            'Biyokimya': '#b2bec3'
+        };
+        
+        // Game State
+        let currentDifficulty = 'easy';
+        let currentLevel = 0;
+        let diamonds = 0;
+        let selectedLetters = [];
+        let currentPuzzle = null;
+        let isDragging = false;
+        let startLetter = null;
+        let timeLeft = 60;
+        let timerInterval = null;
+        let moveInterval = null;
+        let letterPositions = [];
+        
+        // Initialize Background Particles
+        function initBackground() {
+            const container = document.getElementById('bgParticles');
+            for (let i = 0; i < 50; i++) {
+                const p = document.createElement('div');
+                p.className = 'bg-particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                p.style.animationDelay = Math.random() * 10 + 's';
+                container.appendChild(p);
             }
-            
-            if (checkDraw()) {
-                document.getElementById('status').textContent = '🤝 Berabere!';
-                gameActive = false;
-                return;
-            }
-            
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            document.getElementById('status').textContent = `Sıra: ${currentPlayer}`;
         }
         
-        function checkWin() {
-            for (let condition of winningConditions) {
-                const [a, b, c] = condition;
-                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
-                    highlightWin(condition);
-                    return true;
+        function selectDifficulty(diff) {
+            currentDifficulty = diff;
+            const settings = difficultySettings[diff];
+            
+            if (diff === 'ultra' || diff === 'mega') {
+                document.getElementById('warningText').textContent = 
+                    diff === 'ultra' ? '⚠️ ULTRA: Harfler hareket ediyor! Dikkat!' : 
+                    '⚠️ MEGA: EKRAN TİTRİYOR! GLITCH AKTİF! ⚠️';
+            }
+            
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                gameScreen.classList.add('active');
+                
+                // Add difficulty classes
+                if (diff === 'ultra') {
+                    document.getElementById('questionContainer').classList.add('ultra-mode');
+                    document.getElementById('gameBoard').classList.add('ultra');
+                    document.getElementById('centerCircle').classList.add('ultra');
+                } else if (diff === 'mega') {
+                    document.getElementById('questionContainer').classList.add('mega-mode');
+                    document.getElementById('gameBoard').classList.add('mega');
+                    document.getElementById('centerCircle').classList.add('mega');
+                    document.body.classList.add('screen-shake');
+                }
+                
+                currentLevel = 0;
+                loadLevel();
+            }, diff === 'mega' ? 1000 : 300);
+        }
+        
+        function loadLevel() {
+            const puzzles = gameData[currentDifficulty];
+            if (currentLevel >= puzzles.length) currentLevel = 0;
+            
+            currentPuzzle = puzzles[currentLevel];
+            selectedLetters = [];
+            letterPositions = [];
+            
+            // Reset UI
+            document.getElementById('levelInfo').textContent = `Seviye ${currentLevel + 1}/${puzzles.length}`;
+            document.getElementById('difficultyBadge').textContent = currentDifficulty.toUpperCase();
+            document.getElementById('difficultyBadge').style.background = 
+                currentDifficulty === 'easy' ? '#00b894' :
+                currentDifficulty === 'medium' ? '#fdcb6e' :
+                currentDifficulty === 'hard' ? '#d63031' :
+                currentDifficulty === 'impossible' ? '#6c5ce7' :
+                currentDifficulty === 'ultra' ? '#2d3436' : '#ff0000';
+            
+            document.getElementById('questionText').textContent = currentPuzzle.question;
+            const badge = document.getElementById('categoryBadge');
+            badge.textContent = currentPuzzle.category;
+            badge.style.background = categoryColors[currentPuzzle.category] || '#6c5ce7';
+            
+            // Timer
+            timeLeft = difficultySettings[currentDifficulty].time;
+            startTimer();
+            
+            updateAnswerPreview();
+            createLetterBoard();
+            
+            // Shuffle button visibility
+            document.getElementById('shuffleBtn').style.display = 
+                difficultySettings[currentDifficulty].shuffle ? 'block' : 'none';
+        }
+        
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(moveInterval);
+                    showLoseModal();
+                }
+            }, 1000);
+        }
+        
+        function updateTimerDisplay() {
+            const total = difficultySettings[currentDifficulty].time;
+            const pct = (timeLeft / total) * 100;
+            document.getElementById('timerFill').style.width = pct + '%';
+            document.getElementById('timerText').textContent = timeLeft + ' saniye';
+            
+            // Urgent colors
+            if (timeLeft <= 5) {
+                document.getElementById('timerFill').style.background = '#d63031';
+            } else if (timeLeft <= 10) {
+                document.getElementById('timerFill').style.background = '#e17055';
+            }
+        }
+        
+        function createLetterBoard() {
+            const existing = gameBoard.querySelectorAll('.letter-slot');
+            existing.forEach(e => e.remove());
+            clearInterval(moveInterval);
+            
+            const letters = currentPuzzle.letters;
+            const radius = 130;
+            const centerX = gameBoard.offsetWidth / 2;
+            const centerY = gameBoard.offsetHeight / 2;
+            
+            letters.forEach((letter, index) => {
+                const angle = (index / letters.length) * 2 * Math.PI - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle) - 27.5;
+                const y = centerY + radius * Math.sin(angle) - 27.5;
+                
+                letterPositions[index] = { x, y, angle, speed: Math.random() * 2 + 1 };
+                
+                const slot = document.createElement('div');
+                slot.className = 'letter-slot';
+                if (currentDifficulty === 'mega') slot.classList.add('mega-letter');
+                slot.textContent = letter;
+                slot.style.left = x + 'px';
+                slot.style.top = y + 'px';
+                slot.dataset.index = index;
+                slot.dataset.letter = letter;
+                
+                slot.addEventListener('mousedown', startDrag);
+                slot.addEventListener('touchstart', startDrag, {passive: false});
+                
+                gameBoard.appendChild(slot);
+            });
+            
+            // Moving letters for ultra/mega
+            if (difficultySettings[currentDifficulty].move) {
+                moveInterval = setInterval(moveLetters, 50);
+            }
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', drag, {passive: false});
+            document.addEventListener('touchend', endDrag);
+        }
+        
+        function moveLetters() {
+            const slots = document.querySelectorAll('.letter-slot');
+            const centerX = gameBoard.offsetWidth / 2;
+            const centerY = gameBoard.offsetHeight / 2;
+            const radius = 130;
+            
+            slots.forEach((slot, index) => {
+                if (slot.classList.contains('used') || slot.classList.contains('selected')) return;
+                
+                const pos = letterPositions[index];
+                pos.angle += pos.speed * 0.02;
+                
+                const x = centerX + radius * Math.cos(pos.angle) - 27.5;
+                const y = centerY + radius * Math.sin(pos.angle) - 27.5;
+                
+                slot.style.left = x + 'px';
+                slot.style.top = y + 'px';
+            });
+        }
+        
+        function shuffleLetters() {
+            if (diamonds < 3) {
+                alert('3 elmas gerekli! 💎');
+                return;
+            }
+            diamonds -= 3;
+            document.getElementById('diamondCount').textContent = diamonds;
+            
+            const slots = document.querySelectorAll('.letter-slot:not(.used)');
+            const letters = Array.from(slots).map(s => s.dataset.letter);
+            
+            // Fisher-Yates shuffle
+            for (let i = letters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [letters[i], letters[j]] = [letters[j], letters[i]];
+            }
+            
+            slots.forEach((slot, i) => {
+                if (letters[i]) {
+                    slot.textContent = letters[i];
+                    slot.dataset.letter = letters[i];
+                    slot.animate([{transform: 'rotate(360deg) scale(0)'}, {transform: 'rotate(0) scale(1)'}], {duration: 300});
+                }
+            });
+        }
+        
+        function startDrag(e) {
+            e.preventDefault();
+            isDragging = true;
+            const slot = e.target.closest('.letter-slot');
+            if (!slot || slot.classList.contains('used')) return;
+            
+            startLetter = slot;
+            selectLetter(slot);
+        }
+        
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const touch = e.touches ? e.touches[0] : e;
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            const slot = element?.closest('.letter-slot');
+            
+            if (slot && !slot.classList.contains('selected') && !slot.classList.contains('used')) {
+                const lastSelected = selectedLetters[selectedLetters.length - 1];
+                if (lastSelected) {
+                    const rect1 = lastSelected.getBoundingClientRect();
+                    const rect2 = slot.getBoundingClientRect();
+                    const dist = Math.hypot(rect1.left - rect2.left, rect1.top - rect2.top);
+                    
+                    if (dist < 120) {
+                        selectLetter(slot);
+                    }
                 }
             }
-            return false;
         }
         
-        function highlightWin(cells) {
-            const cellElements = document.getElementsByClassName('cell');
-            for (let index of cells) {
-                cellElements[index].classList.add('winning');
-            }
+        function endDrag(e) {
+            isDragging = false;
+            startLetter = null;
         }
         
-        function checkDraw() {
-            return gameBoard.every(cell => cell !== '');
-        }
-        
-        function restartGame() {
-            currentPlayer = 'X';
-            gameBoard = ['', '', '', '', '', '', '', '', ''];
-            gameActive = true;
-            document.getElementById('status').textContent = 'Sıra: X';
+        function selectLetter(slot) {
+            if (selectedLetters.includes(slot)) return;
             
-            const cells = document.getElementsByClassName('cell');
-            for (let cell of cells) {
-                cell.textContent = '';
-                cell.className = 'cell';
+            slot.classList.add('selected');
+            selectedLetters.push(slot);
+            updateAnswerPreview();
+            
+            // Sound effect visual
+            slot.animate([
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.4)' },
+                { transform: 'scale(1.2)' }
+            ], { duration: 150 });
+        }
+        
+        function updateAnswerPreview() {
+            answerPreview.innerHTML = '';
+            selectedLetters.forEach((slot, index) => {
+                const div = document.createElement('div');
+                div.className = 'preview-letter';
+                div.textContent = slot.dataset.letter;
+                answerPreview.appendChild(div);
+            });
+            
+            const totalLength = currentPuzzle.answer.length;
+            for (let i = selectedLetters.length; i < totalLength; i++) {
+                const div = document.createElement('div');
+                div.className = 'preview-letter';
+                div.style.opacity = '0.3';
+                div.style.background = 'rgba(255,255,255,0.1)';
+                answerPreview.appendChild(div);
             }
         }
+        
+        function clearAnswer() {
+            selectedLetters.forEach(slot => slot.classList.remove('selected'));
+            selectedLetters = [];
+            updateAnswerPreview();
+        }
+        
+        function showHint() {
+            if (diamonds < 5) {
+                alert('Yeterli elmas yok! 💎');
+                return;
+            }
+            
+            diamonds -= 5;
+            document.getElementById('diamondCount').textContent = diamonds;
+            
+            const answer = currentPuzzle.answer;
+            const currentWord = selectedLetters.map(s => s.dataset.letter).join('');
+            
+            if (currentWord.length < answer.length) {
+                const nextLetter = answer[currentWord.length];
+                const slots = Array.from(document.querySelectorAll('.letter-slot:not(.used):not(.selected)'));
+                const target = slots.find(s => s.dataset.letter === nextLetter);
+                
+                if (target) {
+                    target.style.boxShadow = '0 0 50px #ffd700';
+                    target.animate([{transform: 'scale(1)'}, {transform: 'scale(1.3)'}, {transform: 'scale(1)'}], 
+                        {duration: 500, iterations: 3});
+                    
+                    setTimeout(() => {
+                        target.style.boxShadow = '';
+                    }, 2000);
+                }
+            }
+        }
+        
+        function checkAnswer() {
+            const userAnswer = selectedLetters.map(s => s.dataset.letter).join('');
+            const correctAnswer = currentPuzzle.answer;
+            
+            if (userAnswer === correctAnswer) {
+                clearInterval(timerInterval);
+                clearInterval(moveInterval);
+                
+                const settings = difficultySettings[currentDifficulty];
+                const timeBonus = Math.floor(timeLeft / 2);
+                const totalReward = settings.reward + timeBonus;
+                
+                diamonds += totalReward;
+                document.getElementById('diamondCount').textContent = diamonds;
+                
+                document.getElementById('rewardText').textContent = `+${settings.reward} Elmas!`;
+                document.getElementById('bonusText').textContent = 
+                    timeBonus > 0 ? `⏱️ Zaman Bonusu: +${timeBonus} 💎` : '';
+                
+                winModal.classList.add('active');
+                selectedLetters.forEach(slot => {
+                    slot.classList.add('used');
+                    slot.classList.remove('selected');
+                });
+                
+                createMegaConfetti();
+            } else {
+                // Wrong
+                answerPreview.classList.add('screen-shake');
+                setTimeout(() => answerPreview.classList.remove('screen-shake'), 500);
+                
+                selectedLetters.forEach(slot => {
+                    slot.classList.add('wrong');
+                    setTimeout(() => slot.classList.remove('wrong', 'selected'), 500);
+                });
+                
+                selectedLetters = [];
+                setTimeout(updateAnswerPreview, 500);
+            }
+        }
+        
+        function showLoseModal() {
+            document.getElementById('correctAnswer').textContent = currentPuzzle.answer;
+            document.getElementById('loseModal').classList.add('active');
+        }
+        
+        function retryLevel() {
+            document.getElementById('loseModal').classList.remove('active');
+            loadLevel();
+        }
+        
+        function nextLevel() {
+            winModal.classList.remove('active');
+            currentLevel++;
+            loadLevel();
+        }
+        
+        function createMegaConfetti() {
+            const emojis = ['💎', '✨', '⭐', '🎉', '🔥', '⚡', '🌟', '💥', '🏆', '🎯'];
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    p.style.left = Math.random() * 100 + 'vw';
+                    p.style.top = '100vh';
+                    p.style.fontSize = (Math.random() * 30 + 20) + 'px';
+                    p.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    p.style.setProperty('--tx', (Math.random() * 400 - 200) + 'px');
+                    p.style.setProperty('--ty', -(Math.random() * 800 + 500) + 'px');
+                    p.style.animation = `particle-explode ${Math.random() * 2 + 2}s forwards`;
+                    document.body.appendChild(p);
+                    
+                    setTimeout(() => p.remove(), 4000);
+                }, i * 20);
+            }
+        }
+        
+        // Center circle clear
+        document.getElementById('centerCircle').addEventListener('click', clearAnswer);
+        
+        // Initialize
+        initBackground();
+        document.getElementById('diamondCount').textContent = diamonds;
     </script>
 </body>
 </html>
